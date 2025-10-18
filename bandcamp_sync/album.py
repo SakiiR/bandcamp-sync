@@ -4,7 +4,7 @@ import datetime
 from dataclasses import dataclass
 from typing import List, Optional
 
-from src.typing import BandcampPageInfo, TrackinfoJson
+from bandcamp_sync.typing import BandcampPageInfo, TrackinfoJson
 
 
 @dataclass
@@ -79,7 +79,8 @@ class AlbumInfo:
         tracks_json = info.get("trackinfo")
         artist = info.get("artist")
         art = info.get("image")
-        genres = info.get("keywords")
+        genres = info.get("keywords", [])
+        label = cls.get_album_label(info=info)
 
         all_tracks_available = all(map(lambda x: bool(x["file"]), tracks_json))
 
@@ -93,7 +94,7 @@ class AlbumInfo:
 
         return cls(
             title=cls.get_album_title(info=info),
-            label=cls.get_album_label(info=info),
+            label=label,
             release_date=cls.get_album_release_date(info=info),
             artist=artist,
             art=art,

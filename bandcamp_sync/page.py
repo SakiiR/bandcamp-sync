@@ -3,7 +3,7 @@ import logging
 
 import bs4
 
-from src.typing import BandcampPageInfo
+from bandcamp_sync.typing import BandcampPageInfo
 
 logger = logging.getLogger()
 

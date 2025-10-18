@@ -6,9 +6,9 @@ import requests
 from mutagen import id3, mp3
 from tqdm import tqdm
 
-from src.album import AlbumInfo, TrackInfo
-from src.slugify import slugify_presets
-from src.typing import BandcampWishlistItem
+from bandcamp_sync.album import AlbumInfo, TrackInfo
+from bandcamp_sync.slugify import slugify_presets
+from bandcamp_sync.typing import BandcampWishlistItem
 
 
 class Downloader:
@@ -130,7 +130,9 @@ class Downloader:
         track_info: TrackInfo,
         art_path: pathlib.Path,
     ) -> None:
-        mp3_filename = f"{slugify_presets(album_info.artist)} - {slugify_presets(track_info.title)}.mp3"
+        mp3_filename = (
+            f"{track_info.number or 1:03d} - {slugify_presets(track_info.title)}.mp3"
+        )
         track_outdir = directory / mp3_filename
 
         print(f"Downloading track {mp3_filename}")
@@ -140,6 +142,9 @@ class Downloader:
             response = self._session.get(
                 track_info.url, headers=self._headers, stream=True
             )
+            if "text/html" in response.headers.get("content-type"):
+                print(f"File not available : {response.content}")
+                return None
             total = int(response.headers["content-length"])
             progress_bar.total = total
             for chunk in response.iter_content(chunk_size=self._chunk_size):

@@ -17,15 +17,10 @@
     "editor.defaultFormatter": null,
     "editor.formatOnSave": false
   },
-  "python.testing.unittestArgs": [
-    "-v",
-    "-s",
-    "./tests",
-    "-b",
-    "--locals"
-  ],
   "python.testing.pytestEnabled": false,
-  "python.testing.unittestEnabled": true,
-  "mypy.targets": [],
+  "python.testing.unittestEnabled": false,
+  "mypy.targets": [
+    "bandcamp_sync"
+  ],
   "black-formatter.importStrategy": "fromEnvironment",
 }

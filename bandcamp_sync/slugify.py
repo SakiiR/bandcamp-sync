@@ -6,4 +6,5 @@ def slugify_presets(text: str) -> str:
         text,
         lowercase=False,
         allow_unicode=True,
+        replacements=[("-", " ")],
     )

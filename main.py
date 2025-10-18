@@ -8,9 +8,9 @@ import typer
 from requests.adapters import HTTPAdapter
 from urllib3.util import create_urllib3_context
 
-from src.album import AlbumInfo
-from src.downloader import Downloader
-from src.page import BandcampPage
+from bandcamp_sync.album import AlbumInfo
+from bandcamp_sync.downloader import Downloader
+from bandcamp_sync.page import BandcampPage
 
 cli = typer.Typer()
 
