@@ -72,8 +72,15 @@ class Downloader:
                 yield item
         return None
 
-    def download_page(self, url: str) -> str:
-        return self._session.get(url, headers=self._headers).content
+    def download_page(self, url: str) -> Optional[bytes]:
+        try:
+            return self._session.get(url, headers=self._headers).content
+        except requests.exceptions.TooManyRedirects:
+            print(f"Too many redirects for {url}, skipping")
+            return None
+        except requests.RequestException as e:
+            print(f"Request error for {url}: {e}, skipping")
+            return None
 
     def _download_art(self, art_url: str, directory: pathlib.Path) -> None:
         response = self._session.get(url=art_url, headers=self._headers)
