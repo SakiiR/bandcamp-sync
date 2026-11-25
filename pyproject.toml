@@ -8,16 +8,20 @@ dependencies = [
     "beautifulsoup4>=4.15.0",
     "httpx>=0.28.0",
     "mutagen>=1.48.1",
-    "python-slugify>=9.2.0",
     "rich>=15.0.0",
     "typer>=0.29.2",
 ]
 
 [dependency-groups]
 dev = [
+    "pytest>=8.3.0",
     "ruff>=0.17.6",
     "ty>=0.0.109",
 ]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
 
 [tool.ruff]
 line-length = 88
