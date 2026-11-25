@@ -1,5 +1,5 @@
 [project]
-name = "bandcamp-sync"
+name = "bandcamp-dj-sync"
 version = "0.1.0"
 description = "Sync your Bandcamp library to a local folder for DJ software"
 readme = "README.md"

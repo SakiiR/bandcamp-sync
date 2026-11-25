@@ -46,7 +46,7 @@ The program is on PyPI. You install it or run it with one command.
 `uvx` downloads the program, runs it and then removes it:
 
 ```
-uvx bandcamp-sync --help
+uvx --from bandcamp-dj-sync bandcamp-sync --help
 ```
 
 ### Install the command
@@ -54,7 +54,7 @@ uvx bandcamp-sync --help
 To keep the `bandcamp-sync` command on your system, run this command:
 
 ```
-uv tool install bandcamp-sync
+uv tool install bandcamp-dj-sync
 ```
 
 Then you run the command directly:
@@ -64,7 +64,7 @@ bandcamp-sync --help
 ```
 
 The examples below use the `bandcamp-sync` command. With `uvx`, you write
-`uvx bandcamp-sync` instead.
+`uvx --from bandcamp-dj-sync bandcamp-sync` instead.
 
 ## Quick start
 
