@@ -15,14 +15,31 @@ not install the packages by hand.
 `uvx` is part of `uv`. It downloads the program, runs it and then removes it.
 You do not install the program first.
 
-Run the program from the Git repository:
+```
+uvx bandcamp-sync --help
+```
+
+This method is the easiest way to use the program.
+
+## Install the command
+
+To keep the `bandcamp-sync` command on your system, run this command:
+
+```
+uv tool install bandcamp-sync
+```
+
+Then you run `bandcamp-sync` directly. To get the latest version later, run
+`uv tool upgrade bandcamp-sync`.
+
+The steps below are for a local install from the source code. Use them only for
+development.
+
+To run the latest, unreleased code from Git, use this command:
 
 ```
 uvx --from git+https://github.com/SakiiR/bandcamp-sync.git bandcamp-sync --help
 ```
-
-This method is the easiest way to use the program. The steps below are for a
-local install from the source code.
 
 ## Install uv
 

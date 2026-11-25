@@ -39,16 +39,32 @@ does not download an album again when the album is already complete on disk.
 You need the `uv` package manager. See
 [docs/installation.md](docs/installation.md) to install `uv`.
 
-With `uv`, you run the program with one command. You do not install the program
-first. Run this command:
+The program is on PyPI. You install it or run it with one command.
+
+### Run without an install
+
+`uvx` downloads the program, runs it and then removes it:
 
 ```
-uvx --from git+https://github.com/SakiiR/bandcamp-sync.git bandcamp-sync --help
+uvx bandcamp-sync --help
 ```
 
-`uvx` downloads the program, runs it and then removes it. The examples below use
-the short command `bandcamp-sync`. Put the `uvx --from ...` part before it each
-time.
+### Install the command
+
+To keep the `bandcamp-sync` command on your system, run this command:
+
+```
+uv tool install bandcamp-sync
+```
+
+Then you run the command directly:
+
+```
+bandcamp-sync --help
+```
+
+The examples below use the `bandcamp-sync` command. With `uvx`, you write
+`uvx bandcamp-sync` instead.
 
 ## Quick start
 

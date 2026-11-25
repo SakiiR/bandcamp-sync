@@ -3,12 +3,16 @@
 This page tells you how to use each command. The examples use the
 `bandcamp-sync` command.
 
-You run the `bandcamp-sync` command in one of two ways:
+You run the `bandcamp-sync` command in one of these ways:
 
-- With `uvx`, you add the prefix `uvx --from git+https://github.com/SakiiR/bandcamp-sync.git`
-  before the command. See [Installation](installation.md).
-- From the source code, you replace `bandcamp-sync` with `bandcamp-sync`. See
+- Install the command with `uv tool install bandcamp-sync`. Then run
+  `bandcamp-sync` directly.
+- Run the command with `uvx`. You write `uvx bandcamp-sync` before the
+  arguments.
+- From the source code, you replace `bandcamp-sync` with `uv run main.py`. See
   [Development](development.md).
+
+See [Installation](installation.md) for more information.
 
 ## Global option
 

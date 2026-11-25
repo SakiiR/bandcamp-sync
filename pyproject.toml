@@ -4,6 +4,16 @@ version = "0.1.0"
 description = "Sync your Bandcamp library to a local folder for DJ software"
 readme = "README.md"
 requires-python = ">=3.13"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "SakiiR", email = "9950578+SakiiR@users.noreply.github.com" }]
+keywords = ["bandcamp", "dj", "rekordbox", "serato", "traktor", "music", "sync"]
+classifiers = [
+    "Environment :: Console",
+    "Intended Audience :: End Users/Desktop",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Multimedia :: Sound/Audio",
+]
 dependencies = [
     "beautifulsoup4>=4.15.0",
     "httpx>=0.28.0",
@@ -11,6 +21,11 @@ dependencies = [
     "rich>=15.0.0",
     "typer>=0.29.2",
 ]
+
+[project.urls]
+Homepage = "https://github.com/SakiiR/bandcamp-sync"
+Repository = "https://github.com/SakiiR/bandcamp-sync"
+Issues = "https://github.com/SakiiR/bandcamp-sync/issues"
 
 [project.scripts]
 bandcamp-sync = "bandcamp_sync.cli:cli"
