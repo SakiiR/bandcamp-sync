@@ -8,3 +8,15 @@ wheels/
 
 # Virtual environments
 .venv
+
+# Tool caches
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.dmypy.json
+
+# Downloaded albums (default sync/download output folder)
+/bandcamp-sync/
+
+# Scratch Bandcamp page dumps
+all-infos.jsonl
