@@ -4,6 +4,16 @@ Bandcamp Sync is a command-line program. It downloads albums from Bandcamp to a
 local folder. It keeps the local folder the same as one or more Bandcamp
 wishlists or collections.
 
+## Who is this for
+
+This program is for the amateur DJ. You buy or save your music on Bandcamp. You
+want a clean copy of that music on your computer.
+
+The program keeps your Bandcamp library in one local folder. Then you import
+that folder into your DJ program. The program writes the correct metadata, so
+rekordbox, Serato, Traktor or another DJ program reads the track information
+without a problem.
+
 The program writes each album to its own folder. It adds the cover art and the
 track metadata to each MP3 file.
 
@@ -26,22 +36,26 @@ does not download an album again when the album is already complete on disk.
 
 ## Installation
 
-1. Install `uv`.
-2. Open a terminal in the project folder.
-3. Run this command:
+You need the `uv` package manager. See
+[docs/installation.md](docs/installation.md) to install `uv`.
+
+With `uv`, you run the program with one command. You do not install the program
+first. Run this command:
 
 ```
-uv sync
+uvx --from git+https://github.com/SakiiR/bandcamp-sync.git bandcamp-sync --help
 ```
 
-The command installs all dependencies.
+`uvx` downloads the program, runs it and then removes it. The examples below use
+the short command `bandcamp-sync`. Put the `uvx --from ...` part before it each
+time.
 
 ## Quick start
 
 To download one album, run this command:
 
 ```
-uv run main.py download https://your-artist.bandcamp.com/album/your-album
+bandcamp-sync download https://your-artist.bandcamp.com/album/your-album
 ```
 
 To sync a wishlist, you need the fan ID. Do these steps:
@@ -49,16 +63,17 @@ To sync a wishlist, you need the fan ID. Do these steps:
 1. Get the fan ID for your fan page:
 
 ```
-uv run main.py fan-id --url https://bandcamp.com/your-name
+bandcamp-sync fan-id --url https://bandcamp.com/your-name
 ```
 
 2. Sync the wishlist with that fan ID:
 
 ```
-uv run main.py sync --fan-id-wishlist 123456
+bandcamp-sync sync --fan-id-wishlist 123456
 ```
 
-The program writes the albums to the `bandcamp-sync` folder.
+The program writes the albums to the `bandcamp-sync` folder. Then you import
+this folder into your DJ program.
 
 ## Commands
 
@@ -71,7 +86,7 @@ The program writes the albums to the `bandcamp-sync` folder.
 To see all options for a command, add `--help`:
 
 ```
-uv run main.py sync --help
+bandcamp-sync sync --help
 ```
 
 ## Documentation

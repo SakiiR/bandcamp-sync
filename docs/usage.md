@@ -1,7 +1,14 @@
 # Usage
 
-This page tells you how to use each command. You start the program with
-`uv run main.py`.
+This page tells you how to use each command. The examples use the
+`bandcamp-sync` command.
+
+You run the `bandcamp-sync` command in one of two ways:
+
+- With `uvx`, you add the prefix `uvx --from git+https://github.com/SakiiR/bandcamp-sync.git`
+  before the command. See [Installation](installation.md).
+- From the source code, you replace `bandcamp-sync` with `bandcamp-sync`. See
+  [Development](development.md).
 
 ## Global option
 
@@ -9,7 +16,7 @@ The `--debug` option turns on the maximum log level. Put the option before the
 command name.
 
 ```
-uv run main.py --debug sync --fan-id-wishlist 123456
+bandcamp-sync --debug sync --fan-id-wishlist 123456
 ```
 
 Without `--debug`, the program shows only the progress bar, the warnings and
@@ -22,7 +29,7 @@ The `download` command downloads one album from a URL.
 Syntax:
 
 ```
-uv run main.py download URL [OUTPUT_DIRECTORY]
+bandcamp-sync download URL [OUTPUT_DIRECTORY]
 ```
 
 Arguments:
@@ -35,7 +42,7 @@ Arguments:
 Example:
 
 ```
-uv run main.py download https://your-artist.bandcamp.com/album/your-album
+bandcamp-sync download https://your-artist.bandcamp.com/album/your-album
 ```
 
 The command accepts a custom domain URL. The program finds the Bandcamp page
@@ -49,20 +56,20 @@ need the fan ID for the `sync` command.
 Syntax:
 
 ```
-uv run main.py fan-id --url URL
+bandcamp-sync fan-id --url URL
 ```
 
 Example:
 
 ```
-uv run main.py fan-id --url https://bandcamp.com/your-name
+bandcamp-sync fan-id --url https://bandcamp.com/your-name
 ```
 
 The command writes only the number to the output. You can put the number
 directly into another command:
 
 ```
-uv run main.py sync --fan-id-collection "$(uv run main.py fan-id --url https://bandcamp.com/your-name)"
+bandcamp-sync sync --fan-id-collection "$(bandcamp-sync fan-id --url https://bandcamp.com/your-name)"
 ```
 
 ## The sync command
@@ -73,7 +80,7 @@ local folder the same as those sources.
 Syntax:
 
 ```
-uv run main.py sync [OPTIONS] [DESTINATION_FOLDER]
+bandcamp-sync sync [OPTIONS] [DESTINATION_FOLDER]
 ```
 
 You must give at least one source. A source is a wishlist, a collection or a
@@ -97,19 +104,19 @@ URL file.
 Sync one wishlist:
 
 ```
-uv run main.py sync --fan-id-wishlist 123456
+bandcamp-sync sync --fan-id-wishlist 123456
 ```
 
 Sync two wishlists and one collection:
 
 ```
-uv run main.py sync --fan-id-wishlist 123456 --fan-id-wishlist 654321 --fan-id-collection 123456
+bandcamp-sync sync --fan-id-wishlist 123456 --fan-id-wishlist 654321 --fan-id-collection 123456
 ```
 
 Sync a wishlist and remove old albums:
 
 ```
-uv run main.py sync --fan-id-wishlist 123456 --remove-orphan-albums
+bandcamp-sync sync --fan-id-wishlist 123456 --remove-orphan-albums
 ```
 
 ### The URL file
@@ -129,7 +136,7 @@ https://artist-two.bandcamp.com/album/second-album
 Use the file with this option:
 
 ```
-uv run main.py sync --additional-bandcamp-url-file urls.txt
+bandcamp-sync sync --additional-bandcamp-url-file urls.txt
 ```
 
 ### A note on concurrency
@@ -143,5 +150,5 @@ Keep the number low when you get many 429 errors.
 Add `--help` to any command:
 
 ```
-uv run main.py download --help
+bandcamp-sync download --help
 ```

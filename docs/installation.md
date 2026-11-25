@@ -10,6 +10,20 @@ This page tells you how to install Bandcamp Sync.
 The program uses `uv` for the dependencies and the virtual environment. You do
 not install the packages by hand.
 
+## Run without an install
+
+`uvx` is part of `uv`. It downloads the program, runs it and then removes it.
+You do not install the program first.
+
+Run the program from the Git repository:
+
+```
+uvx --from git+https://github.com/SakiiR/bandcamp-sync.git bandcamp-sync --help
+```
+
+This method is the easiest way to use the program. The steps below are for a
+local install from the source code.
+
 ## Install uv
 
 `uv` is a fast package manager for Python.

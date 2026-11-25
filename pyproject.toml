@@ -1,7 +1,7 @@
 [project]
 name = "bandcamp-sync"
 version = "0.1.0"
-description = "Synchronize your bandcamp wishlist locally"
+description = "Sync your Bandcamp library to a local folder for DJ software"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
@@ -11,6 +11,16 @@ dependencies = [
     "rich>=15.0.0",
     "typer>=0.29.2",
 ]
+
+[project.scripts]
+bandcamp-sync = "bandcamp_sync.cli:cli"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["bandcamp_sync"]
 
 [dependency-groups]
 dev = [
@@ -31,6 +41,12 @@ target-version = "py313"
 # Standard rule set: pyflakes (F) + pycodestyle (E/W) + import sorting (I)
 # + pyupgrade (UP) + flake8-bugbear (B).
 select = ["E", "F", "I", "W", "UP", "B"]
+
+[tool.ruff.lint.flake8-bugbear]
+# Typer declares CLI options/arguments as call expressions in parameter
+# defaults (e.g. ``x: int = typer.Option(...)``); this is the intended API, so
+# B008 (function call in default) does not apply to them.
+extend-immutable-calls = ["typer.Option", "typer.Argument"]
 
 [tool.ruff.lint.per-file-ignores]
 # typing.py is auto-generated from bandcamp's JSON: huge type-alias names,
