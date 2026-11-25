@@ -6,7 +6,7 @@ readme = "README.md"
 requires-python = ">=3.13"
 license = "MIT"
 license-files = ["LICENSE"]
-authors = [{ name = "SakiiR", email = "9950578+SakiiR@users.noreply.github.com" }]
+authors = [{ name = "SakiiR" }]
 keywords = ["bandcamp", "dj", "rekordbox", "serato", "traktor", "music", "sync"]
 classifiers = [
     "Environment :: Console",
