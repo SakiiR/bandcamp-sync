@@ -1,11 +1,11 @@
+import asyncio
 import pathlib
-import time
-from collections.abc import Generator
+from collections.abc import AsyncGenerator
 from datetime import UTC, datetime
 from email.utils import parsedate_to_datetime
 from typing import Any
 
-import requests
+import httpx
 from mutagen import id3, mp3
 from rich.progress import (
     BarColumn,
@@ -81,17 +81,17 @@ def make_progress() -> Progress:
 
 
 class Downloader:
-    _session: requests.Session
+    _session: httpx.AsyncClient
     _headers: dict[str, str]
     _chunk_size: int
 
     def __init__(
         self,
-        session: requests.Session | None = None,
+        session: httpx.AsyncClient,
         rate_limit_wait: float = 30.0,
         max_rate_limit_retries: int = 5,
     ):
-        self._session = session or requests.Session()
+        self._session = session
         self._headers = {"User-Agent": DEFAULT_USER_AGENT}
         self._chunk_size = 1024
         # Rate-limit (HTTP 429) handling: base back-off used when the server
@@ -100,7 +100,7 @@ class Downloader:
         self._rate_limit_wait = rate_limit_wait
         self._max_rate_limit_retries = max_rate_limit_retries
 
-    def _backoff_seconds(self, response: requests.Response, attempt: int) -> float:
+    def _backoff_seconds(self, response: httpx.Response, attempt: int) -> float:
         """How long to wait before retry ``attempt`` (1-based) of a 429.
 
         Starts from the server's ``Retry-After`` (or ``rate_limit_wait`` when
@@ -110,7 +110,7 @@ class Downloader:
         """
         return self._retry_after_seconds(response) * (2 ** (attempt - 1))
 
-    def _rate_limit_details(self, response: requests.Response) -> str:
+    def _rate_limit_details(self, response: httpx.Response) -> str:
         """A compact string of whatever the server told us about the 429."""
         parts = []
         for header in ("Retry-After", "X-RateLimit-Remaining", "X-RateLimit-Reset"):
@@ -122,7 +122,7 @@ class Downloader:
             parts.append(f"body={body[:200]!r}")
         return "; ".join(parts) if parts else "no details in response"
 
-    def _retry_after_seconds(self, response: requests.Response) -> float:
+    def _retry_after_seconds(self, response: httpx.Response) -> float:
         """Seconds to wait, honoring ``Retry-After`` (secs or HTTP-date)."""
         retry_after = response.headers.get("Retry-After")
         if retry_after:
@@ -139,7 +139,7 @@ class Downloader:
                     pass
         return self._rate_limit_wait
 
-    def _fancollection_items_request(
+    async def _fancollection_items_request(
         self,
         endpoint: str,
         fan_id: int,
@@ -154,7 +154,7 @@ class Downloader:
         """
         label = endpoint.removesuffix("_items")
         try:
-            response = self._session.post(
+            response = await self._session.post(
                 f"https://bandcamp.com/api/fancollection/1/{endpoint}",
                 json={
                     "count": count,
@@ -173,7 +173,7 @@ class Downloader:
                     self._rate_limit_details(response),
                     wait,
                 )
-                time.sleep(wait)
+                await asyncio.sleep(wait)
                 return None
             if response.status_code != 200:
                 logger.warning(
@@ -184,23 +184,23 @@ class Downloader:
                 )
                 return None
             return response.json()
-        except requests.RequestException as e:
+        except httpx.RequestError as e:
             logger.warning("Request error while fetching %s: %s", label, e)
             return None
 
-    def _fancollection_iterator(
+    async def _fancollection_iterator(
         self,
         endpoint: str,
         fan_id: int,
         count: int = 200,
-    ) -> Generator[BandcampWishlistItem]:
+    ) -> AsyncGenerator[BandcampWishlistItem]:
         label = endpoint.removesuffix("_items")
         more_available = True
         older_than_token = None
         failures = 0
 
         while more_available:
-            json_data = self._fancollection_items_request(
+            json_data = await self._fancollection_items_request(
                 endpoint=endpoint,
                 fan_id=fan_id,
                 count=count,
@@ -221,34 +221,37 @@ class Downloader:
                     failures,
                     self._max_rate_limit_retries,
                 )
-                time.sleep(5)
+                await asyncio.sleep(5)
                 continue
 
             failures = 0
             more_available = json_data.get("more_available") or False
             older_than_token = json_data.get("last_token") or None
 
-            yield from json_data.get("items") or []
+            for item in json_data.get("items") or []:
+                yield item
 
-    def wishlist_iterator(
+    async def wishlist_iterator(
         self,
         fan_id: int,
         count: int = 200,
-    ) -> Generator[BandcampWishlistItem]:
-        yield from self._fancollection_iterator(
+    ) -> AsyncGenerator[BandcampWishlistItem]:
+        async for item in self._fancollection_iterator(
             endpoint="wishlist_items", fan_id=fan_id, count=count
-        )
+        ):
+            yield item
 
-    def collection_iterator(
+    async def collection_iterator(
         self,
         fan_id: int,
         count: int = 200,
-    ) -> Generator[BandcampWishlistItem]:
-        yield from self._fancollection_iterator(
+    ) -> AsyncGenerator[BandcampWishlistItem]:
+        async for item in self._fancollection_iterator(
             endpoint="collection_items", fan_id=fan_id, count=count
-        )
+        ):
+            yield item
 
-    def download_page(self, url: str) -> bytes:
+    async def download_page(self, url: str) -> bytes:
         """Fetch ``url`` and return its body.
 
         Raises :class:`PageDownloadError` (never returns empty) for any
@@ -258,10 +261,10 @@ class Downloader:
         """
         for attempt in range(1, self._max_rate_limit_retries + 1):
             try:
-                response = self._session.get(url, headers=self._headers)
-            except requests.exceptions.TooManyRedirects as e:
+                response = await self._session.get(url, headers=self._headers)
+            except httpx.TooManyRedirects as e:
                 raise PageDownloadError(f"too many redirects for {url}") from e
-            except requests.RequestException as e:
+            except httpx.RequestError as e:
                 raise PageDownloadError(
                     f"request error for {url}: {e}"
                 ) from e
@@ -277,7 +280,7 @@ class Downloader:
                     attempt,
                     self._max_rate_limit_retries,
                 )
-                time.sleep(wait)
+                await asyncio.sleep(wait)
                 continue
 
             if not response.content:
@@ -292,8 +295,8 @@ class Downloader:
             f"rate-limit retries (HTTP 429)"
         )
 
-    def _download_art(self, art_url: str, directory: pathlib.Path) -> None:
-        response = self._session.get(url=art_url, headers=self._headers)
+    async def _download_art(self, art_url: str, directory: pathlib.Path) -> None:
+        response = await self._session.get(url=art_url, headers=self._headers)
 
         with open(directory, "wb") as fp:
             fp.write(response.content)
@@ -340,7 +343,7 @@ class Downloader:
         audio["date"] = album_info.release_date
         audio.save()
 
-    def _download_track(
+    async def _download_track(
         self,
         progress: Progress,
         directory: pathlib.Path,
@@ -360,30 +363,30 @@ class Downloader:
 
         logger.debug("Downloading track %s", mp3_filename)
 
-        response = self._session.get(
-            track_info.url, headers=self._headers, stream=True
-        )
-        content_type = response.headers.get("content-type") or "unknown"
-        if "text/html" in content_type:
-            logger.warning(
-                "Track '%s' is not available for download: server returned an "
-                "HTML page (content-type %s) instead of audio, skipping",
-                track_info.title,
-                content_type,
-            )
-            return
+        async with self._session.stream(
+            "GET", track_info.url, headers=self._headers
+        ) as response:
+            content_type = response.headers.get("content-type") or "unknown"
+            if "text/html" in content_type:
+                logger.warning(
+                    "Track '%s' is not available for download: server returned "
+                    "an HTML page (content-type %s) instead of audio, skipping",
+                    track_info.title,
+                    content_type,
+                )
+                return
 
-        total = int(response.headers.get("content-length") or 0)
-        task = progress.add_task(
-            f"  [green]{mp3_filename}", total=total or None
-        )
-        try:
-            with open(track_outdir, "wb+") as fp:
-                for chunk in response.iter_content(chunk_size=self._chunk_size):
-                    fp.write(chunk)
-                    progress.advance(task, len(chunk))
-        finally:
-            progress.remove_task(task)
+            total = int(response.headers.get("content-length") or 0)
+            task = progress.add_task(
+                f"  [green]{mp3_filename}", total=total or None
+            )
+            try:
+                with open(track_outdir, "wb+") as fp:
+                    async for chunk in response.aiter_bytes(self._chunk_size):
+                        fp.write(chunk)
+                        progress.advance(task, len(chunk))
+            finally:
+                progress.remove_task(task)
 
         if total and (
             not track_outdir.exists() or track_outdir.stat().st_size != total
@@ -407,8 +410,8 @@ class Downloader:
                 attempt,
                 MAX_TRACK_RETRIES,
             )
-            time.sleep(5)
-            self._download_track(
+            await asyncio.sleep(5)
+            await self._download_track(
                 progress=progress,
                 directory=directory,
                 album_info=album_info,
@@ -418,14 +421,17 @@ class Downloader:
             )
             return
 
-        self._write_mp3_meta(
+        # mutagen rewrites the whole file several times (blocking CPU + disk);
+        # run it off the event loop so concurrent downloads keep flowing.
+        await asyncio.to_thread(
+            self._write_mp3_meta,
             track_outdir=track_outdir,
             album_info=album_info,
             track_info=track_info,
             art_path=art_path,
         )
 
-    def _download_tracks(
+    async def _download_tracks(
         self,
         progress: Progress,
         album_task: TaskID,
@@ -437,7 +443,7 @@ class Downloader:
             if not track_info.url:
                 continue
             try:
-                self._download_track(
+                await self._download_track(
                     progress=progress,
                     directory=directory,
                     album_info=album_info,
@@ -453,7 +459,7 @@ class Downloader:
             finally:
                 progress.advance(album_task)
 
-    def download_album_to_directory(
+    async def download_album_to_directory(
         self,
         album_info: AlbumInfo,
         directory: pathlib.Path,
@@ -469,7 +475,7 @@ class Downloader:
 
         art_path = directory / "cover.jpg"
         try:
-            self._download_art(album_info.art, directory=art_path)
+            await self._download_art(album_info.art, directory=art_path)
         except Exception as e:
             logger.warning(
                 "Could not download cover art for '%s': %s", album_info.title, e
@@ -483,7 +489,7 @@ class Downloader:
             show_count=True,
         )
         try:
-            self._download_tracks(
+            await self._download_tracks(
                 progress=progress,
                 album_task=album_task,
                 album_info=album_info,

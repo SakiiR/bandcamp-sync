@@ -34,7 +34,7 @@ def setup_logging(debug: bool = False) -> None:
 
     # Keep third-party libraries quiet unless we explicitly want everything.
     if not debug:
-        for noisy in ("urllib3", "requests", "chardet", "charset_normalizer"):
+        for noisy in ("httpx", "httpcore", "chardet", "charset_normalizer"):
             logging.getLogger(noisy).setLevel(logging.WARNING)
 
 

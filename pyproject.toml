@@ -6,9 +6,9 @@ readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "beautifulsoup4>=4.15.0",
+    "httpx>=0.28.0",
     "mutagen>=1.48.1",
     "python-slugify>=9.2.0",
-    "requests>=2.34.2",
     "rich>=15.0.0",
     "typer>=0.29.2",
 ]
