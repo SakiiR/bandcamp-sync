@@ -2,9 +2,9 @@ from __future__ import annotations
 
 import datetime
 from dataclasses import dataclass
-from typing import List, Optional
+from typing import Any, cast
 
-from bandcamp_sync.typing import BandcampPageInfo, TrackinfoJson
+from bandcamp_sync.typing import BandcampPageInfo, File, TrackinfoJson
 
 
 @dataclass
@@ -12,12 +12,14 @@ class TrackInfo:
     duration: float
     number: int
     title: str
-    url: Optional[str]
+    url: str | None
 
     @classmethod
     def from_track_info_json(cls, info: TrackinfoJson) -> TrackInfo:
         url = None
-        file_info = info.get("file")
+        # Bandcamp sometimes omits "file" entirely (e.g. preorder / unavailable
+        # tracks), so treat it as optional despite the TypedDict.
+        file_info = cast("File | None", info.get("file"))
         if file_info and "mp3-128" in file_info:
             mp3_128 = file_info["mp3-128"]
             if "https" in mp3_128:
@@ -39,14 +41,14 @@ class AlbumInfo:
     artist: str
     art: str
     release_date: str
-    label: Optional[str]
+    label: str | None
     all_tracks_available: bool
-    genres: List[str]
-    tracks: List[TrackInfo]
+    genres: list[str]
+    tracks: list[TrackInfo]
 
     @classmethod
     def get_album_release_date(cls, info: BandcampPageInfo) -> str:
-        def fmt(date_str: str) -> Optional[str]:
+        def fmt(date_str: str) -> str:
             return str(
                 datetime.datetime.strptime(date_str, "%d %b %Y %H:%M:%S GMT").year
             )
@@ -68,9 +70,12 @@ class AlbumInfo:
             return info["trackinfo"][0]["title"]
 
     @classmethod
-    def get_album_label(cls, info: BandcampPageInfo) -> Optional[str]:
+    def get_album_label(cls, info: BandcampPageInfo) -> str | None:
+        # item_sellers is keyed by the (dynamic) seller id; the generated
+        # TypedDict only knows one literal key, so treat it as a plain mapping.
+        sellers = cast("dict[str, Any]", info["item_sellers"])
         try:
-            return info["item_sellers"][str(info["current"]["selling_band_id"])]["name"]
+            return sellers[str(info["current"]["selling_band_id"])]["name"]
         except KeyError:
             return None
 

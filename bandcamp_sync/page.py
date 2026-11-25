@@ -1,39 +1,42 @@
 import json
-import logging
+from typing import Any, cast
 
 import bs4
 
+from bandcamp_sync.log import get_logger
 from bandcamp_sync.typing import BandcampPageInfo
 
-logger = logging.getLogger()
+logger = get_logger(__name__)
 
 
 class BandcampPage:
     @staticmethod
-    def parse_content(content: str) -> BandcampPageInfo:
+    def parse_content(content: str | bytes) -> BandcampPageInfo:
         soup = bs4.BeautifulSoup(content, "html.parser")
 
-        page_data = {}
+        page_data: dict[str, Any] = {}
 
         try:
-            page_data = {
-                **page_data,
-                **json.loads(soup.find("div", {"id": "pagedata"})["data-blob"]),
-            }
+            pagedata = soup.find("div", {"id": "pagedata"})
+            if isinstance(pagedata, bs4.Tag):
+                blob = pagedata.get("data-blob")
+                if isinstance(blob, str):
+                    page_data = {**page_data, **json.loads(blob)}
 
-            page_data = {
-                **page_data,
-                **json.loads(
-                    soup.find("script", {"type": "application/ld+json"}).string
-                ),
-            }
+            ld_json = soup.find("script", {"type": "application/ld+json"})
+            if isinstance(ld_json, bs4.Tag) and ld_json.string:
+                page_data = {**page_data, **json.loads(ld_json.string)}
 
             key = "data-tralbum"
-            for item in filter(lambda x: x.get(key), soup.find_all("script")):
-                json_data = item.get(key)
-                page_data = {**page_data, **json.loads(json_data)}
+            for item in soup.find_all("script"):
+                json_data = item.get(key) if isinstance(item, bs4.Tag) else None
+                if isinstance(json_data, str):
+                    page_data = {**page_data, **json.loads(json_data)}
         except Exception as e:
-            print(e)
-            return page_data
+            logger.warning(
+                "Failed to extract some bandcamp page data (%s); returning the "
+                "partial data parsed so far",
+                e,
+            )
 
-        return page_data
+        return cast(BandcampPageInfo, page_data)

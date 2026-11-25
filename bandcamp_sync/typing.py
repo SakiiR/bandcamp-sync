@@ -90,90 +90,84 @@ class ItemArt(TypedDict):
     art_id: int
 
 
-from typing_extensions import Any, List, NotRequired, TypedDict, Union
+from typing import Any, NotRequired, Union
+
+from typing_extensions import TypedDict
 
 File = TypedDict("File", {"mp3-128": str})
 
-TrackinfoJson = TypedDict(
-    "Trackinfo",
-    {
-        "id": int,
-        "track_id": int,
-        "file": File,
-        "artist": None,
-        "title": str,
-        "encodings_id": int,
-        "license_type": int,
-        "private": None,
-        "track_num": int,
-        "album_preorder": bool,
-        "unreleased_track": bool,
-        "title_link": str,
-        "has_lyrics": bool,
-        "has_info": bool,
-        "streaming": int,
-        "is_downloadable": bool,
-        "has_free_download": None,
-        "free_album_download": bool,
-        "duration": float,
-        "lyrics": None,
-        "sizeof_lyrics": int,
-        "is_draft": bool,
-        "video_source_type": None,
-        "video_source_id": None,
-        "video_mobile_url": None,
-        "video_poster_url": None,
-        "video_id": None,
-        "video_caption": None,
-        "video_featured": None,
-        "alt_link": None,
-        "encoding_error": None,
-        "encoding_pending": None,
-        "play_count": None,
-        "is_capped": None,
-        "track_license_id": None,
-    },
-)
+class TrackinfoJson(TypedDict):
+    id: int
+    track_id: int
+    file: File
+    artist: None
+    title: str
+    encodings_id: int
+    license_type: int
+    private: None
+    track_num: int
+    album_preorder: bool
+    unreleased_track: bool
+    title_link: str
+    has_lyrics: bool
+    has_info: bool
+    streaming: int
+    is_downloadable: bool
+    has_free_download: None
+    free_album_download: bool
+    duration: float
+    lyrics: None
+    sizeof_lyrics: int
+    is_draft: bool
+    video_source_type: None
+    video_source_id: None
+    video_mobile_url: None
+    video_poster_url: None
+    video_id: None
+    video_caption: None
+    video_featured: None
+    alt_link: None
+    encoding_error: None
+    encoding_pending: None
+    play_count: None
+    is_capped: None
+    track_license_id: None
 
-PlayCapData = TypedDict(
-    "PlayCapData", {"streaming_limits_enabled": bool, "streaming_limit": int}
-)
+class PlayCapData(TypedDict):
+    streaming_limits_enabled: bool
+    streaming_limit: int
 
-Current = TypedDict(
-    "Current",
-    {
-        "audit": int,
-        "title": str,
-        "new_date": str,
-        "mod_date": str,
-        "publish_date": str,
-        "private": None,
-        "killed": None,
-        "download_pref": int,
-        "require_email": None,
-        "is_set_price": None,
-        "set_price": float,
-        "minimum_price": float,
-        "minimum_price_nonzero": float,
-        "require_email_0": None,
-        "artist": str,
-        "about": str,
-        "credits": str,
-        "auto_repriced": None,
-        "new_desc_format": int,
-        "band_id": int,
-        "selling_band_id": int,
-        "art_id": int,
-        "download_desc_id": None,
-        "release_date": str,
-        "upc": None,
-        "purchase_url": None,
-        "purchase_title": None,
-        "featured_track_id": int,
-        "id": int,
-        "type": str,
-    },
-)
+class Current(TypedDict):
+    audit: int
+    title: str
+    new_date: str
+    mod_date: str
+    publish_date: str
+    private: None
+    killed: None
+    download_pref: int
+    require_email: None
+    is_set_price: None
+    set_price: float
+    minimum_price: float
+    minimum_price_nonzero: float
+    require_email_0: None
+    artist: str
+    about: str
+    credits: str
+    auto_repriced: None
+    new_desc_format: int
+    band_id: int
+    selling_band_id: int
+    art_id: int
+    download_desc_id: None
+    release_date: str
+    upc: None
+    purchase_url: None
+    purchase_title: None
+    featured_track_id: int
+    id: int
+    type: str
 
 Sponsor = TypedDict(
     "Sponsor",
@@ -181,7 +175,7 @@ Sponsor = TypedDict(
         "@type": str,
         "url": str,
         "image": str,
-        "additionalProperty": List["AdditionalProperty"],
+        "additionalProperty": list["AdditionalProperty"],
         "name": NotRequired[str],
     },
 )
@@ -191,7 +185,7 @@ Item = TypedDict(
     {
         "@type": str,
         "@id": str,
-        "additionalProperty": List["AdditionalProperty"],
+        "additionalProperty": list["AdditionalProperty"],
         "name": str,
         "duration": str,
         "copyrightNotice": str,
@@ -205,7 +199,7 @@ ItemListElement = TypedDict(
 
 Track = TypedDict(
     "Track",
-    {"@type": str, "numberOfItems": int, "itemListElement": List[ItemListElement]},
+    {"@type": str, "numberOfItems": int, "itemListElement": list[ItemListElement]},
 )
 
 SubjectOf = TypedDict(
@@ -214,7 +208,7 @@ SubjectOf = TypedDict(
         "@type": str,
         "url": str,
         "name": str,
-        "additionalProperty": List["AdditionalProperty"],
+        "additionalProperty": list["AdditionalProperty"],
     },
 )
 
@@ -228,18 +222,19 @@ Publisher = TypedDict(
         "@type": str,
         "@id": str,
         "name": str,
-        "additionalProperty": List["AdditionalProperty"],
+        "additionalProperty": list["AdditionalProperty"],
         "image": str,
         "genre": str,
         "description": str,
-        "mainEntityOfPage": List[MainEntityOfPage],
-        "subjectOf": List[SubjectOf],
+        "mainEntityOfPage": list[MainEntityOfPage],
+        "subjectOf": list[SubjectOf],
     },
 )
 
 ByArtist = TypedDict("ByArtist", {"@type": str, "name": str})
 
-PriceSpecification = TypedDict("PriceSpecification", {"minPrice": float})
+class PriceSpecification(TypedDict):
+    minPrice: float
 
 Offers = TypedDict(
     "Offers",
@@ -259,7 +254,7 @@ AdditionalProperty = TypedDict(
     "AdditionalProperty", {"@type": str, "name": str, "value": UnnammedUnion45E0B0}
 )
 
-UnnammedUnion45DDA0 = Union[str, List[str]]
+UnnammedUnion45DDA0 = Union[str, list[str]]
 
 AlbumRelease = TypedDict(
     "AlbumRelease",
@@ -267,213 +262,204 @@ AlbumRelease = TypedDict(
         "@type": UnnammedUnion45DDA0,
         "@id": str,
         "name": NotRequired[str],
-        "additionalProperty": NotRequired[List[AdditionalProperty]],
+        "additionalProperty": NotRequired[list[AdditionalProperty]],
         "description": NotRequired[str],
         "offers": NotRequired[Offers],
         "musicReleaseFormat": NotRequired[str],
-        "image": NotRequired[List[str]],
+        "image": NotRequired[list[str]],
     },
 )
 
-RecFooter = TypedDict("RecFooter", {})
+class RecFooter(TypedDict):
+    pass
 
-Identities = TypedDict(
-    "Identities",
-    {
-        "user": None,
-        "ip_country_code": str,
-        "fan": None,
-        "is_page_band_member": None,
-        "subscribed_to_page_band": None,
-        "bands": List[Any],
-        "partner": bool,
-        "is_admin": None,
-        "labels": List[Any],
-        "page_band": None,
-        "active_licenses": List[Any],
-    },
-)
+class Identities(TypedDict):
+    user: None
+    ip_country_code: str
+    fan: None
+    is_page_band_member: None
+    subscribed_to_page_band: None
+    bands: list[Any]
+    partner: bool
+    is_admin: None
+    labels: list[Any]
+    page_band: None
+    active_licenses: list[Any]
 
-a618540384 = TypedDict(
-    "618540384",
-    {
-        "id": int,
-        "name": str,
-        "currency": str,
-        "max_price": float,
-        "digital_vat_enabled": bool,
-        "is_dsa_trader": bool,
-    },
-)
+class a618540384(TypedDict):
+    id: int
+    name: str
+    currency: str
+    max_price: float
+    digital_vat_enabled: bool
+    is_dsa_trader: bool
 
 ItemSellers = TypedDict("ItemSellers", {"618540384": a618540384})
 
-FunkOrCountryOrAcousticOrAmbientOrSpokenWordOrJazzOrClassicalOrPunkOrRBSoulOrBlueOrAlternativeOrReggaeOrExperimentalOrMetalOrPopOrComedyOrElectronicOrLatinOrHipHopRapOrDevotionalOrFolkOrSoundtrackOrKidOrRockOrWorld = TypedDict(
-    "FunkOrCountryOrAcousticOrAmbientOrSpokenWordOrJazzOrClassicalOrPunkOrRBSoulOrBlueOrAlternativeOrReggaeOrExperimentalOrMetalOrPopOrComedyOrElectronicOrLatinOrHipHopRapOrDevotionalOrFolkOrSoundtrackOrKidOrRockOrWorld",
-    {"name": str, "value": str, "norm_name": str},
-)
+class FunkOrCountryOrAcousticOrAmbientOrSpokenWordOrJazzOrClassicalOrPunkOrRBSoulOrBlueOrAlternativeOrReggaeOrExperimentalOrMetalOrPopOrComedyOrElectronicOrLatinOrHipHopRapOrDevotionalOrFolkOrSoundtrackOrKidOrRockOrWorld(TypedDict):
+    name: str
+    value: str
+    norm_name: str
 
 Subgenres = TypedDict(
     "Subgenres",
     {
-        "acoustic": List[
+        "acoustic": list[
             FunkOrCountryOrAcousticOrAmbientOrSpokenWordOrJazzOrClassicalOrPunkOrRBSoulOrBlueOrAlternativeOrReggaeOrExperimentalOrMetalOrPopOrComedyOrElectronicOrLatinOrHipHopRapOrDevotionalOrFolkOrSoundtrackOrKidOrRockOrWorld
         ],
-        "alternative": List[
+        "alternative": list[
             FunkOrCountryOrAcousticOrAmbientOrSpokenWordOrJazzOrClassicalOrPunkOrRBSoulOrBlueOrAlternativeOrReggaeOrExperimentalOrMetalOrPopOrComedyOrElectronicOrLatinOrHipHopRapOrDevotionalOrFolkOrSoundtrackOrKidOrRockOrWorld
         ],
-        "ambient": List[
+        "ambient": list[
             FunkOrCountryOrAcousticOrAmbientOrSpokenWordOrJazzOrClassicalOrPunkOrRBSoulOrBlueOrAlternativeOrReggaeOrExperimentalOrMetalOrPopOrComedyOrElectronicOrLatinOrHipHopRapOrDevotionalOrFolkOrSoundtrackOrKidOrRockOrWorld
         ],
-        "blues": List[
+        "blues": list[
             FunkOrCountryOrAcousticOrAmbientOrSpokenWordOrJazzOrClassicalOrPunkOrRBSoulOrBlueOrAlternativeOrReggaeOrExperimentalOrMetalOrPopOrComedyOrElectronicOrLatinOrHipHopRapOrDevotionalOrFolkOrSoundtrackOrKidOrRockOrWorld
         ],
-        "classical": List[
+        "classical": list[
             FunkOrCountryOrAcousticOrAmbientOrSpokenWordOrJazzOrClassicalOrPunkOrRBSoulOrBlueOrAlternativeOrReggaeOrExperimentalOrMetalOrPopOrComedyOrElectronicOrLatinOrHipHopRapOrDevotionalOrFolkOrSoundtrackOrKidOrRockOrWorld
         ],
-        "comedy": List[
+        "comedy": list[
             FunkOrCountryOrAcousticOrAmbientOrSpokenWordOrJazzOrClassicalOrPunkOrRBSoulOrBlueOrAlternativeOrReggaeOrExperimentalOrMetalOrPopOrComedyOrElectronicOrLatinOrHipHopRapOrDevotionalOrFolkOrSoundtrackOrKidOrRockOrWorld
         ],
-        "country": List[
+        "country": list[
             FunkOrCountryOrAcousticOrAmbientOrSpokenWordOrJazzOrClassicalOrPunkOrRBSoulOrBlueOrAlternativeOrReggaeOrExperimentalOrMetalOrPopOrComedyOrElectronicOrLatinOrHipHopRapOrDevotionalOrFolkOrSoundtrackOrKidOrRockOrWorld
         ],
-        "devotional": List[
+        "devotional": list[
             FunkOrCountryOrAcousticOrAmbientOrSpokenWordOrJazzOrClassicalOrPunkOrRBSoulOrBlueOrAlternativeOrReggaeOrExperimentalOrMetalOrPopOrComedyOrElectronicOrLatinOrHipHopRapOrDevotionalOrFolkOrSoundtrackOrKidOrRockOrWorld
         ],
-        "electronic": List[
+        "electronic": list[
             FunkOrCountryOrAcousticOrAmbientOrSpokenWordOrJazzOrClassicalOrPunkOrRBSoulOrBlueOrAlternativeOrReggaeOrExperimentalOrMetalOrPopOrComedyOrElectronicOrLatinOrHipHopRapOrDevotionalOrFolkOrSoundtrackOrKidOrRockOrWorld
         ],
-        "experimental": List[
+        "experimental": list[
             FunkOrCountryOrAcousticOrAmbientOrSpokenWordOrJazzOrClassicalOrPunkOrRBSoulOrBlueOrAlternativeOrReggaeOrExperimentalOrMetalOrPopOrComedyOrElectronicOrLatinOrHipHopRapOrDevotionalOrFolkOrSoundtrackOrKidOrRockOrWorld
         ],
-        "folk": List[
+        "folk": list[
             FunkOrCountryOrAcousticOrAmbientOrSpokenWordOrJazzOrClassicalOrPunkOrRBSoulOrBlueOrAlternativeOrReggaeOrExperimentalOrMetalOrPopOrComedyOrElectronicOrLatinOrHipHopRapOrDevotionalOrFolkOrSoundtrackOrKidOrRockOrWorld
         ],
-        "funk": List[
+        "funk": list[
             FunkOrCountryOrAcousticOrAmbientOrSpokenWordOrJazzOrClassicalOrPunkOrRBSoulOrBlueOrAlternativeOrReggaeOrExperimentalOrMetalOrPopOrComedyOrElectronicOrLatinOrHipHopRapOrDevotionalOrFolkOrSoundtrackOrKidOrRockOrWorld
         ],
-        "hip-hop-rap": List[
+        "hip-hop-rap": list[
             FunkOrCountryOrAcousticOrAmbientOrSpokenWordOrJazzOrClassicalOrPunkOrRBSoulOrBlueOrAlternativeOrReggaeOrExperimentalOrMetalOrPopOrComedyOrElectronicOrLatinOrHipHopRapOrDevotionalOrFolkOrSoundtrackOrKidOrRockOrWorld
         ],
-        "jazz": List[
+        "jazz": list[
             FunkOrCountryOrAcousticOrAmbientOrSpokenWordOrJazzOrClassicalOrPunkOrRBSoulOrBlueOrAlternativeOrReggaeOrExperimentalOrMetalOrPopOrComedyOrElectronicOrLatinOrHipHopRapOrDevotionalOrFolkOrSoundtrackOrKidOrRockOrWorld
         ],
-        "kids": List[
+        "kids": list[
             FunkOrCountryOrAcousticOrAmbientOrSpokenWordOrJazzOrClassicalOrPunkOrRBSoulOrBlueOrAlternativeOrReggaeOrExperimentalOrMetalOrPopOrComedyOrElectronicOrLatinOrHipHopRapOrDevotionalOrFolkOrSoundtrackOrKidOrRockOrWorld
         ],
-        "latin": List[
+        "latin": list[
             FunkOrCountryOrAcousticOrAmbientOrSpokenWordOrJazzOrClassicalOrPunkOrRBSoulOrBlueOrAlternativeOrReggaeOrExperimentalOrMetalOrPopOrComedyOrElectronicOrLatinOrHipHopRapOrDevotionalOrFolkOrSoundtrackOrKidOrRockOrWorld
         ],
-        "metal": List[
+        "metal": list[
             FunkOrCountryOrAcousticOrAmbientOrSpokenWordOrJazzOrClassicalOrPunkOrRBSoulOrBlueOrAlternativeOrReggaeOrExperimentalOrMetalOrPopOrComedyOrElectronicOrLatinOrHipHopRapOrDevotionalOrFolkOrSoundtrackOrKidOrRockOrWorld
         ],
-        "pop": List[
+        "pop": list[
             FunkOrCountryOrAcousticOrAmbientOrSpokenWordOrJazzOrClassicalOrPunkOrRBSoulOrBlueOrAlternativeOrReggaeOrExperimentalOrMetalOrPopOrComedyOrElectronicOrLatinOrHipHopRapOrDevotionalOrFolkOrSoundtrackOrKidOrRockOrWorld
         ],
-        "punk": List[
+        "punk": list[
             FunkOrCountryOrAcousticOrAmbientOrSpokenWordOrJazzOrClassicalOrPunkOrRBSoulOrBlueOrAlternativeOrReggaeOrExperimentalOrMetalOrPopOrComedyOrElectronicOrLatinOrHipHopRapOrDevotionalOrFolkOrSoundtrackOrKidOrRockOrWorld
         ],
-        "r-b-soul": List[
+        "r-b-soul": list[
             FunkOrCountryOrAcousticOrAmbientOrSpokenWordOrJazzOrClassicalOrPunkOrRBSoulOrBlueOrAlternativeOrReggaeOrExperimentalOrMetalOrPopOrComedyOrElectronicOrLatinOrHipHopRapOrDevotionalOrFolkOrSoundtrackOrKidOrRockOrWorld
         ],
-        "reggae": List[
+        "reggae": list[
             FunkOrCountryOrAcousticOrAmbientOrSpokenWordOrJazzOrClassicalOrPunkOrRBSoulOrBlueOrAlternativeOrReggaeOrExperimentalOrMetalOrPopOrComedyOrElectronicOrLatinOrHipHopRapOrDevotionalOrFolkOrSoundtrackOrKidOrRockOrWorld
         ],
-        "rock": List[
+        "rock": list[
             FunkOrCountryOrAcousticOrAmbientOrSpokenWordOrJazzOrClassicalOrPunkOrRBSoulOrBlueOrAlternativeOrReggaeOrExperimentalOrMetalOrPopOrComedyOrElectronicOrLatinOrHipHopRapOrDevotionalOrFolkOrSoundtrackOrKidOrRockOrWorld
         ],
-        "soundtrack": List[
+        "soundtrack": list[
             FunkOrCountryOrAcousticOrAmbientOrSpokenWordOrJazzOrClassicalOrPunkOrRBSoulOrBlueOrAlternativeOrReggaeOrExperimentalOrMetalOrPopOrComedyOrElectronicOrLatinOrHipHopRapOrDevotionalOrFolkOrSoundtrackOrKidOrRockOrWorld
         ],
-        "spoken-word": List[
+        "spoken-word": list[
             FunkOrCountryOrAcousticOrAmbientOrSpokenWordOrJazzOrClassicalOrPunkOrRBSoulOrBlueOrAlternativeOrReggaeOrExperimentalOrMetalOrPopOrComedyOrElectronicOrLatinOrHipHopRapOrDevotionalOrFolkOrSoundtrackOrKidOrRockOrWorld
         ],
-        "world": List[
+        "world": list[
             FunkOrCountryOrAcousticOrAmbientOrSpokenWordOrJazzOrClassicalOrPunkOrRBSoulOrBlueOrAlternativeOrReggaeOrExperimentalOrMetalOrPopOrComedyOrElectronicOrLatinOrHipHopRapOrDevotionalOrFolkOrSoundtrackOrKidOrRockOrWorld
         ],
     },
 )
 
-Genre = TypedDict("Genre", {"id": int, "name": str, "norm_name": str, "value": str})
+class Genre(TypedDict):
+    id: int
+    name: str
+    norm_name: str
+    value: str
 
-MailingListInfo = TypedDict("MailingListInfo", {"email_address": None})
+class MailingListInfo(TypedDict):
+    email_address: None
 
-SignupParams = TypedDict(
-    "SignupParams",
-    {
-        "save_card": bool,
-        "mailing_list_info": MailingListInfo,
-        "genres": List[Genre],
-        "subgenres": Subgenres,
-        "activation_url": str,
-        "activation_sig": str,
-        "is_phone": bool,
-        "isMobile": bool,
-    },
-)
+class SignupParams(TypedDict):
+    save_card: bool
+    mailing_list_info: MailingListInfo
+    genres: list[Genre]
+    subgenres: Subgenres
+    activation_url: str
+    activation_sig: str
+    is_phone: bool
+    isMobile: bool
 
-BuyerLocation = TypedDict("BuyerLocation", {"country_code": str, "is_eu": bool})
+class BuyerLocation(TypedDict):
+    country_code: str
+    is_eu: bool
 
-LiveEventTickets = TypedDict("LiveEventTickets", {})
+class LiveEventTickets(TypedDict):
+    pass
 
-Cfg = TypedDict(
-    "Cfg",
-    {
-        "mobile_app": bool,
-        "gifting": bool,
-        "physical_gifting": bool,
-        "physical_gifting_zip_regex": bool,
-        "tralbum_login": bool,
-        "no_flash_uploads": bool,
-        "artist_subscriptions": bool,
-        "video_sharing": bool,
-        "open_signup": bool,
-        "stream_buffer_duration_stats": bool,
-        "fan_page_2017": bool,
-        "header_rework_2018": bool,
-        "band_navbar_update_2023": bool,
-        "dsa_buy_dialog": bool,
-        "single_sign_up": bool,
-        "fan_signup_use_captcha": bool,
-        "login_use_captcha": bool,
-        "mobile_onboarding": bool,
-        "gift_cards": bool,
-        "menubar_autocomplete_enabled": bool,
-        "use_elasticsearch_backed_search": bool,
-        "new_search_api_service": bool,
-        "search_tracking": bool,
-        "order_history": bool,
-        "search_discovery_one_filter_desktop_only": bool,
-        "search_discovery_one_filter_rollout": bool,
-        "community": bool,
-    },
-)
+class Cfg(TypedDict):
+    mobile_app: bool
+    gifting: bool
+    physical_gifting: bool
+    physical_gifting_zip_regex: bool
+    tralbum_login: bool
+    no_flash_uploads: bool
+    artist_subscriptions: bool
+    video_sharing: bool
+    open_signup: bool
+    stream_buffer_duration_stats: bool
+    fan_page_2017: bool
+    header_rework_2018: bool
+    band_navbar_update_2023: bool
+    dsa_buy_dialog: bool
+    single_sign_up: bool
+    fan_signup_use_captcha: bool
+    login_use_captcha: bool
+    mobile_onboarding: bool
+    gift_cards: bool
+    menubar_autocomplete_enabled: bool
+    use_elasticsearch_backed_search: bool
+    new_search_api_service: bool
+    search_tracking: bool
+    order_history: bool
+    search_discovery_one_filter_desktop_only: bool
+    search_discovery_one_filter_rollout: bool
+    community: bool
 
-EmbedInfo = TypedDict(
-    "EmbedInfo",
-    {
-        "public_embeddable": bool,
-        "exclusive_embeddable": bool,
-        "item_public": bool,
-        "no_track_preorder": bool,
-    },
-)
+class EmbedInfo(TypedDict):
+    public_embeddable: bool
+    exclusive_embeddable: bool
+    item_public: bool
+    no_track_preorder: bool
 
-SidebarDisco = TypedDict(
-    "SidebarDisco",
-    {
-        "music_grid": bool,
-        "discography_real_size": int,
-        "sidebar_max_size": int,
-        "sidebar_collapse_size": int,
-    },
-)
+class SidebarDisco(TypedDict):
+    music_grid: bool
+    discography_real_size: int
+    sidebar_max_size: int
+    sidebar_collapse_size: int
 
-Languages = TypedDict(
-    "Languages", {"en": str, "de": str, "es": str, "fr": str, "pt": str, "ja": str}
-)
+class Languages(TypedDict):
+    en: str
+    de: str
+    es: str
+    fr: str
+    pt: str
+    ja: str
 
-Templglobals = TypedDict("Templglobals", {"endpoint_mobilized": bool, "is_phone": bool})
+class Templglobals(TypedDict):
+    endpoint_mobilized: bool
+    is_phone: bool
 
 BandcampPageInfo = TypedDict(
     "UnnammedType45EBA0",
@@ -522,19 +508,19 @@ BandcampPageInfo = TypedDict(
         "@type": str,
         "name": str,
         "dateModified": str,
-        "albumRelease": List[AlbumRelease],
+        "albumRelease": list[AlbumRelease],
         "byArtist": ByArtist,
         "publisher": Publisher,
         "numTracks": int,
         "track": Track,
         "image": str,
-        "keywords": List[str],
+        "keywords": list[str],
         "datePublished": str,
         "description": str,
         "creditText": str,
         "copyrightNotice": str,
-        "sponsor": List[Sponsor],
-        "additionalProperty": List[AdditionalProperty],
+        "sponsor": list[Sponsor],
+        "additionalProperty": list[AdditionalProperty],
         "@context": str,
         "for the curious": str,
         "current": Current,
@@ -566,7 +552,7 @@ BandcampPageInfo = TypedDict(
         "is_preorder": bool,
         "album_is_preorder": bool,
         "album_release_date": str,
-        "trackinfo": List[TrackinfoJson],
+        "trackinfo": list[TrackinfoJson],
         "playing_from": str,
         "url": str,
         "use_expando_lyrics": bool,

@@ -1,22 +1,39 @@
 import json
 import pathlib
 import re
-from typing import Iterator, Optional
+from collections.abc import Iterator
 
 import bs4
 import requests
 import typer
 from requests.adapters import HTTPAdapter
+from rich.progress import Progress
 from urllib3.util import create_urllib3_context
 
 from bandcamp_sync.album import AlbumInfo
-from bandcamp_sync.downloader import Downloader
+from bandcamp_sync.downloader import Downloader, make_progress
+from bandcamp_sync.exceptions import PageDownloadError
+from bandcamp_sync.log import get_logger, setup_logging
 from bandcamp_sync.page import BandcampPage
 
 cli = typer.Typer()
 
+logger = get_logger(__name__)
 
-def get_identifier(page_url: str, sep: str = "__") -> Optional[str]:
+
+@cli.callback()
+def main(
+    debug: bool = typer.Option(
+        False,
+        "--debug",
+        help="Enable maximum (DEBUG) logging. Without it, only warnings, "
+        "errors and the progress bar are shown.",
+    ),
+) -> None:
+    setup_logging(debug=debug)
+
+
+def get_identifier(page_url: str, sep: str = "__") -> str | None:
     regex = (
         r"https:\/\/([\w\-]+)\.bandcamp\.com\/(album|track)\/([\w\-]+)"
         if "bandcamp.com" in page_url
@@ -35,7 +52,7 @@ def get_identifier(page_url: str, sep: str = "__") -> Optional[str]:
     return sep.join([name, page_type, object])
 
 
-def resolve_bandcamp_url(url: str, downloader: Downloader) -> Optional[str]:
+def resolve_bandcamp_url(url: str, downloader: Downloader) -> str | None:
     """Resolve a URL to the bandcamp.com page behind it.
 
     Bandcamp Pro releases are served under custom domains (e.g.
@@ -47,20 +64,23 @@ def resolve_bandcamp_url(url: str, downloader: Downloader) -> Optional[str]:
     if "bandcamp.com" in url:
         return url
 
+    # download_page raises PageDownloadError on any abnormal outcome; let it
+    # propagate to the per-item boundary (sync loop / download command).
     content = downloader.download_page(url)
-    if content is None:
-        print(f"Warning: could not fetch {url}, skipping")
-        return None
 
     soup = bs4.BeautifulSoup(content, "html.parser")
     og_url = soup.find("meta", {"property": "og:url"})
-    resolved = og_url.get("content") if og_url else None
+    resolved = og_url.get("content") if isinstance(og_url, bs4.Tag) else None
 
-    if not resolved or "bandcamp.com" not in resolved:
-        print(f"Warning: no bandcamp page behind {url}, skipping")
+    if not isinstance(resolved, str) or "bandcamp.com" not in resolved:
+        logger.warning(
+            "No bandcamp.com og:url found on %s (custom domain has no bandcamp "
+            "page behind it), skipping",
+            url,
+        )
         return None
 
-    print(f"Resolved custom domain {url} -> {resolved}")
+    logger.debug("Resolved custom domain %s -> %s", url, resolved)
     return resolved
 
 
@@ -115,26 +135,30 @@ def get_session() -> requests.Session:
 def download(url: str, output_directory: str = "bandcamp-sync") -> None:
     downloader = Downloader(session=get_session())
 
-    url = resolve_bandcamp_url(url, downloader)
-    if not url:
-        return
+    try:
+        resolved = resolve_bandcamp_url(url, downloader)
+        if not resolved:
+            return
 
-    content = downloader.download_page(url)
-    if content is None:
-        print(f"Could not download page for {url}, skipping")
-        return
+        content = downloader.download_page(resolved)
+        info = BandcampPage.parse_content(content)
+        album_info = AlbumInfo.from_bandcamp_page(info=info, url=resolved)
+        identifier = get_identifier(resolved)
+        if not identifier:
+            logger.warning("Could not parse identifier from %s, skipping", resolved)
+            return
 
-    info = BandcampPage.parse_content(content)
-    album_info = AlbumInfo.from_bandcamp_page(info=info, url=url)
-    identifier = get_identifier(url)
+        with make_progress() as progress:
+            downloader.download_album_to_directory(
+                album_info=album_info,
+                directory=pathlib.Path(output_directory) / identifier,
+                progress=progress,
+            )
+    except PageDownloadError as e:
+        logger.warning("Skipping %s: %s", url, e)
 
-    downloader.download_album_to_directory(
-        album_info=album_info,
-        directory=pathlib.Path(output_directory) / identifier,
-    )
 
-
-def read_additional_urls(path: Optional[str]) -> Iterator[str]:
+def read_additional_urls(path: str | None) -> Iterator[str]:
     """Yield bandcamp URLs from ``path``, one per line.
 
     Streams the file line by line so a large list never lands in memory at
@@ -146,10 +170,10 @@ def read_additional_urls(path: Optional[str]) -> Iterator[str]:
 
     file = pathlib.Path(path)
     if not file.exists():
-        print(f"Warning: {path} does not exist, skipping additional URLs")
+        logger.warning("%s does not exist, skipping additional URLs", path)
         return
 
-    with open(file, "r") as fp:
+    with open(file) as fp:
         for line in fp:
             url = line.strip()
             if url and not url.startswith("#"):
@@ -158,27 +182,33 @@ def read_additional_urls(path: Optional[str]) -> Iterator[str]:
 
 def url_iterator(
     downloader: Downloader,
-    fan_id: int,
-    additional_url_file: Optional[str],
+    fan_ids: list[int],
+    additional_url_file: str | None,
 ) -> Iterator[str]:
-    """Lazily yield item URLs from the wishlist, then from the extra file."""
-    for wishlist_item in downloader.wishlist_iterator(fan_id=fan_id):
-        yield wishlist_item.get("item_url")
+    """Lazily yield item URLs from each fan's wishlist, then the extra file."""
+    for fan_id in fan_ids:
+        logger.debug("Collecting wishlist for fan_id %s", fan_id)
+        for wishlist_item in downloader.wishlist_iterator(fan_id=fan_id):
+            yield wishlist_item.get("item_url")
     yield from read_additional_urls(additional_url_file)
 
 
 def process_url(
-    item_url: Optional[str],
+    item_url: str | None,
     downloader: Downloader,
     destination_folder: str,
+    progress: Progress,
 ) -> None:
+    if not item_url:
+        return
+
     item_url = resolve_bandcamp_url(item_url, downloader)
     if not item_url:
         return
 
     identifier = get_identifier(item_url)
     if not identifier:
-        print(f"Could not parse identifier from {item_url}, skipping")
+        logger.warning("Could not parse identifier from %s, skipping", item_url)
         return
 
     directory_path = pathlib.Path(destination_folder) / identifier
@@ -188,16 +218,13 @@ def process_url(
 
     bandcamp_page = None
     downloaded = False
-    print(f"Downloading page metadata for {identifier} - {item_url=}")
+    logger.debug("Downloading page metadata for %s - %s", identifier, item_url)
     if bandcamp_page_path.exists():
-        with open(bandcamp_page_path, "r") as fp:
+        with open(bandcamp_page_path) as fp:
             bandcamp_page = json.loads(fp.read())
 
     if not bandcamp_page:
         content = downloader.download_page(item_url)
-        if content is None:
-            print(f"Could not download page for {identifier}, skipping")
-            return
         bandcamp_page = BandcampPage.parse_content(content)
         with open(bandcamp_page_path, "w") as fp:
             fp.write(json.dumps(bandcamp_page))
@@ -214,39 +241,95 @@ def process_url(
             list(filter(lambda track: track.url, album_info.tracks))
         )
         if downloaded_tracks_count == actual_available_track_count:
-            print(
-                f"Directory {directory_path} exists, and tracks downloaded skipping..."
+            logger.debug(
+                "Directory %s exists and all tracks downloaded, skipping",
+                directory_path,
             )
             return
 
     if not downloaded:
         content = downloader.download_page(item_url)
-        if content is None:
-            print(f"Could not download page for {identifier}, skipping")
-            return
         bandcamp_page = BandcampPage.parse_content(content)
 
     downloader.download_album_to_directory(
         album_info=album_info,
         directory=pathlib.Path(destination_folder) / identifier,
+        progress=progress,
     )
 
 
 @cli.command()
 def sync(
-    fan_id: int,
+    fan_ids: list[int] = typer.Argument(
+        ...,
+        help="One or more Bandcamp fan ids whose wishlists to sync.",
+    ),
     destination_folder: str = "bandcamp-sync",
-    additional_bandcamp_url_file: Optional[str] = typer.Option(
+    additional_bandcamp_url_file: str | None = typer.Option(
         None,
         help="Path to a file with extra bandcamp URLs to sync, one per line.",
     ),
+    rate_limit_wait: float = typer.Option(
+        30.0,
+        help="Seconds to back off on HTTP 429 when the server sends no "
+        "Retry-After header.",
+    ),
+    max_rate_limit_retries: int = typer.Option(
+        5,
+        help="How many times to retry a single rate-limited (429) request "
+        "before giving up on it.",
+    ),
 ) -> None:
-    downloader = Downloader(session=get_session())
+    downloader = Downloader(
+        session=get_session(),
+        rate_limit_wait=rate_limit_wait,
+        max_rate_limit_retries=max_rate_limit_retries,
+    )
 
-    for item_url in url_iterator(
-        downloader, fan_id, additional_bandcamp_url_file
-    ):
-        process_url(item_url, downloader, destination_folder)
+    with make_progress() as progress:
+        # Enumerate the wishlist (+ extra URLs) first so the overall bar has a
+        # real album count and percentage. The total still grows while we are
+        # discovering: start indeterminate, then lock it in once collected.
+        overall = progress.add_task(
+            "[bold]Collecting wishlist…", total=None, show_count=True
+        )
+        urls: list[str] = []
+        seen: set[str] = set()
+        for url in url_iterator(downloader, fan_ids, additional_bandcamp_url_file):
+            # An album wished by several of the given fans appears once per
+            # fan; collect it a single time.
+            if url in seen:
+                continue
+            seen.add(url)
+            urls.append(url)
+            progress.update(overall, total=len(urls))
+        progress.update(
+            overall, description="[bold]Syncing wishlist", total=len(urls)
+        )
+
+        if not urls:
+            logger.warning(
+                "Nothing to sync for fan_ids %s: the wishlist(s) are empty (and "
+                "no additional URLs were given). Double-check the fan ids.",
+                fan_ids,
+            )
+            return
+
+        for item_url in urls:
+            progress.update(overall, description=f"[bold]Syncing {item_url}")
+            try:
+                process_url(
+                    item_url, downloader, destination_folder, progress=progress
+                )
+            except PageDownloadError as e:
+                # Expected, recoverable: a page wouldn't download. Skip it.
+                logger.warning("Skipping %s: %s", item_url, e)
+            except Exception as e:
+                # Anything else unexpected (malformed metadata, I/O errors, ...)
+                # still must not abort the rest of the wishlist.
+                logger.warning("Failed to process %s: %s", item_url, e)
+            finally:
+                progress.advance(overall)
 
 
 if __name__ == "__main__":

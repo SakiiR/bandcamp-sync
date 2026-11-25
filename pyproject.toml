@@ -3,13 +3,45 @@ name = "bandcamp-sync"
 version = "0.1.0"
 description = "Synchronize your bandcamp wishlist locally"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.13"
 dependencies = [
-    "beautifulsoup4>=4.13.3",
-    "mutagen>=1.47.0",
-    "mypy>=1.15.0",
-    "python-slugify>=8.0.4",
-    "requests>=2.32.3",
-    "tqdm>=4.67.1",
-    "typer>=0.15.2",
+    "beautifulsoup4>=4.15.0",
+    "mutagen>=1.48.1",
+    "python-slugify>=9.2.0",
+    "requests>=2.34.2",
+    "rich>=15.0.0",
+    "typer>=0.29.2",
 ]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.17.6",
+    "ty>=0.0.109",
+]
+
+[tool.ruff]
+line-length = 88
+target-version = "py313"
+
+[tool.ruff.lint]
+# Standard rule set: pyflakes (F) + pycodestyle (E/W) + import sorting (I)
+# + pyupgrade (UP) + flake8-bugbear (B).
+select = ["E", "F", "I", "W", "UP", "B"]
+
+[tool.ruff.lint.per-file-ignores]
+# typing.py is auto-generated from bandcamp's JSON: huge type-alias names,
+# long lines, mid-file imports and legacy Union syntax are expected there.
+"bandcamp_sync/typing.py" = ["E501", "E402", "UP007"]
+
+[tool.ty.environment]
+python-version = "3.13"
+
+[tool.ty.terminal]
+# Strict: any warning-level diagnostic fails the check too.
+error-on-warning = true
+
+[[tool.ty.overrides]]
+# typing.py is auto-generated; its TypedDict variable/name mismatches (e.g.
+# numeric seller-id keys) are expected and not worth rewriting by hand.
+include = ["bandcamp_sync/typing.py"]
+rules = { "mismatched-typeddict-name" = "ignore" }
